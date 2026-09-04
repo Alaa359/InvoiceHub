@@ -112,3 +112,8 @@ export const invoicesApi = {
     return blob;
   },
 };
+
+export const paymentsApi = {
+  // Crée un lien de paiement Stripe pour une facture
+  createCheckout: (invoiceId) => api.post('/payments/create-checkout', { invoiceId }),
+};

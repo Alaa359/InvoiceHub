@@ -3,9 +3,9 @@
 // ============================================
 
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { invoicesApi } from '../api/client';
+import { invoicesApi, paymentsApi } from '../api/client';
 import StatusBadge from '../components/StatusBadge';
 import { useAuthStore } from '../store/authStore';
 import { formatCurrency, formatDate, formatDateLong } from '../utils/format';
@@ -14,6 +14,7 @@ import './invoiceDetail.css';
 export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const user = useAuthStore((s) => s.user);
 
   const [invoice, setInvoice] = useState(null);
@@ -40,7 +41,27 @@ export default function InvoiceDetail() {
 
   useEffect(() => {
     loadInvoice();
+    // Toast de confirmation si retour de paiement Stripe réussi
+    if (searchParams.get('payment') === 'success') {
+      toast.success('Paiement réussi ! La facture est marquée comme payée.');
+    } else if (searchParams.get('payment') === 'cancelled') {
+      toast('Paiement annulé', { icon: 'ℹ️' });
+    }
   }, [id]);
+
+  // Crée un lien de paiement Stripe et redirige le client
+  const handlePay = async () => {
+    setUpdating(true);
+    try {
+      const { url } = await paymentsApi.createCheckout(id);
+      // Redirige vers la page de paiement Stripe (lien renvoyé par le serveur,
+      // jamais la clé secrète)
+      window.location.href = url;
+    } catch (err) {
+      toast.error(err.message || 'Erreur lors du paiement');
+      setUpdating(false);
+    }
+  };
 
   // Change le statut de la facture
   const handleStatusChange = async (newStatus) => {
@@ -126,6 +147,15 @@ export default function InvoiceDetail() {
           <button className="btn btn-success btn-sm" onClick={() => handleStatusChange('paid')} disabled={updating || invoice.status === 'paid'}>
             Marquer payée
           </button>
+          {(invoice.status !== 'paid' && invoice.status !== 'cancelled') && (
+            <button className="btn btn-primary btn-sm" onClick={handlePay} disabled={updating}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <path d="M2 10h20" />
+              </svg>
+              Payer via Stripe
+            </button>
+          )}
           <button className="btn btn-secondary btn-sm danger-text" onClick={handleDelete}>
             Supprimer
           </button>

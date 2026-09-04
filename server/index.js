@@ -33,8 +33,16 @@ app.use(
   })
 );
 
-// Parse du JSON entrant (limite augmentée pour les payloads de factures)
-app.use(express.json({ limit: '10mb' }));
+// Parse du JSON entrant (limite augmentée pour les payloads de factures).
+// `verify` conserve le body brut (nécessaire pour vérifier les webhooks Stripe).
+app.use(
+  express.json({
+    limit: '10mb',
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 
 // ============ ROUTES ============
 
