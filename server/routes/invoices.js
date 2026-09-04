@@ -6,6 +6,7 @@ import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import { authenticate } from '../middleware/auth.js';
 import { prisma } from '../index.js';
+import { generateInvoicePDF } from '../services/pdfGenerator.js';
 
 const router = Router();
 
@@ -351,6 +352,42 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.error('Erreur suppression facture:', error);
     res.status(500).json({ error: 'Erreur lors de la suppression de la facture' });
+  }
+});
+
+// ============ TÉLÉCHARGER LE PDF ============
+
+/**
+ * GET /api/invoices/:id/pdf
+ * Génère et renvoie le PDF de la facture.
+ */
+router.get('/:id/pdf', async (req, res) => {
+  try {
+    const invoice = await prisma.invoice.findFirst({
+      where: { id: req.params.id, userId: req.user.id },
+      include: {
+        client: true,
+      },
+    });
+
+    if (!invoice) {
+      return res.status(404).json({ error: 'Facture introuvable' });
+    }
+
+    // Infos de l'entreprise émettrice (l'utilisateur connecté)
+    const company = { companyName: req.user.companyName };
+
+    const pdfBuffer = await generateInvoicePDF(invoice, company);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="facture-${invoice.number}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Erreur génération PDF:', error);
+    res.status(500).json({ error: 'Erreur lors de la génération du PDF' });
   }
 });
 

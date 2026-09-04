@@ -148,9 +148,22 @@ export default function Invoices() {
                       <td className="cell-amount">{formatCurrency(inv.total)}</td>
                       <td><StatusBadge status={inv.status} /></td>
                       <td>
-                        <Link to={`/invoices/${inv.id}`} className="btn btn-secondary btn-sm">
-                          Voir
-                        </Link>
+                        <div className="row-actions">
+                          <Link to={`/invoices/${inv.id}`} className="btn btn-secondary btn-sm">
+                            Voir
+                          </Link>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => {
+                              invoicesApi.downloadPdf(inv.id).catch((err) =>
+                                toast.error(err.message || 'Erreur PDF')
+                              );
+                            }}
+                            title="Télécharger PDF"
+                          >
+                            PDF
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

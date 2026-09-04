@@ -49,6 +49,12 @@
   background: var(--red-light);
 }
 
+.row-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 /* Responsive table -> cartes empilées sur mobile */
 @media (max-width: 768px) {
   .table-responsive {

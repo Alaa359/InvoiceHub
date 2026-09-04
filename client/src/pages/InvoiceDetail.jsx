@@ -68,6 +68,16 @@ export default function InvoiceDetail() {
     }
   };
 
+  // Télécharge le PDF de la facture
+  const handleDownloadPdf = async () => {
+    try {
+      await invoicesApi.downloadPdf(id);
+      toast.success('PDF téléchargé');
+    } catch (err) {
+      toast.error(err.message || 'Erreur lors du téléchargement');
+    }
+  };
+
   if (loading) return <div className="card skeleton-card" style={{ height: 200 }} />;
   if (!invoice) return <div className="empty-state card"><p>Facture introuvable.</p></div>;
 
@@ -84,6 +94,14 @@ export default function InvoiceDetail() {
         </Link>
         <div className="detail-actions">
           <StatusBadge status={invoice.status} />
+          <button className="btn btn-secondary btn-sm" onClick={handleDownloadPdf}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <path d="M7 10l5 5 5-5" />
+              <path d="M12 15V3" />
+            </svg>
+            Télécharger PDF
+          </button>
           <button className="btn btn-secondary btn-sm" onClick={() => handleStatusChange('sent')} disabled={updating || invoice.status === 'paid'}>
             Marquer envoyée
           </button>

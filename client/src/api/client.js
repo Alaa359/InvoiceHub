@@ -87,4 +87,27 @@ export const invoicesApi = {
   update: (id, data) => api.put(`/invoices/${id}`, data),
   updateStatus: (id, status) => api.patch(`/invoices/${id}/status`, { status }),
   remove: (id) => api.delete(`/invoices/${id}`),
+  // Téléchargement du PDF (binaire)
+  downloadPdf: async (id) => {
+    const token = getToken();
+    const response = await fetch(`${API_URL}/invoices/${id}/pdf`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Erreur lors du téléchargement du PDF');
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `facture-${id}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    return blob;
+  },
 };
