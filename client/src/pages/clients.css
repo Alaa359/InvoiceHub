@@ -1,0 +1,238 @@
+/* ============================================
+   Styles de la page Clients
+   ============================================ */
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* ============ Formulaire client ============ */
+
+.client-form {
+  margin-bottom: 24px;
+}
+
+.client-form h3 {
+  margin-bottom: 16px;
+  font-size: 18px;
+}
+
+.client-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-field label {
+  display: block;
+  font-size: var(--font-label);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.form-field input,
+.form-field select {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.client-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* ============ Grille de clients ============ */
+
+.clients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.client-card-wrap {
+  position: relative;
+}
+
+.client-card {
+  display: block;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.client-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.client-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.client-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--accent-light);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.client-card-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.client-card-company {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.client-card-email {
+  font-size: 13px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 16px;
+}
+
+.client-card-stats {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.client-card-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.client-card-stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.client-card-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 2px;
+}
+
+.client-card-actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.client-card-wrap:hover .client-card-actions {
+  opacity: 1;
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.icon-btn.danger:hover {
+  background: var(--red-light);
+  color: var(--red);
+}
+
+/* ============ Skeleton & vide ============ */
+
+.skeleton-card {
+  height: 160px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+.empty-sub {
+  font-size: 14px;
+  margin-top: 6px;
+  color: #b0b5c4;
+}
+
+/* ============ Responsive ============ */
+
+@media (max-width: 768px) {
+  .client-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .clients-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,227 @@
+/* ============================================
+   InvoiceHub - Variables CSS globales
+   ============================================ */
+
+:root {
+  /* Couleurs de fond */
+  --bg-page: #f5f7fa;
+  --bg-card: #ffffff;
+
+  /* Texte */
+  --text-primary: #1a1d29;
+  --text-secondary: #6e7485;
+
+  /* Accent principal */
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-light: #eef2ff;
+
+  /* Couleurs de statut */
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --orange: #f59e0b;
+  --orange-light: #fef3c7;
+  --gray: #9ca3af;
+  --gray-light: #f3f4f6;
+  --blue: #3b82f6;
+  --blue-light: #dbeafe;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+
+  /* Ombres et bordures */
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.08);
+  --radius: 14px;
+  --border: #e5e7eb;
+
+  /* Typographie */
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-title: 24px;
+  --font-body: 14px;
+  --font-label: 12px;
+}
+
+/* ============================================
+   Styles de base
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-size: var(--font-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: var(--font-body);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* ============================================
+   Utilities communes
+   ============================================ */
+
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  transition: box-shadow 0.2s ease;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--gray-light);
+}
+
+.btn-success {
+  background: var(--green);
+  color: #fff;
+}
+
+.btn-success:hover {
+  background: #15803d;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ============================================
+   Responsive global
+   ============================================ */
+
+@media (max-width: 768px) {
+  :root {
+    --font-title: 20px;
+  }
+}
+
+/* ============================================
+   Stat cards (dashboard)
+   ============================================ */
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-card-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.stat-card-value {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stat-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+/* ============================================
+   Settings
+   ============================================ */
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.settings-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.settings-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ============================================
+   Responsive dashboard
+   ============================================ */
+
+@media (max-width: 992px) {
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+}

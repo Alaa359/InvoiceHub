@@ -1,0 +1,38 @@
+/* ============================================
+   Styles des badges de statut
+   ============================================ */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-green {
+  background: var(--green-light);
+  color: var(--green);
+}
+
+.badge-orange {
+  background: var(--orange-light);
+  color: #b45309;
+}
+
+.badge-blue {
+  background: var(--blue-light);
+  color: var(--blue);
+}
+
+.badge-gray {
+  background: var(--gray-light);
+  color: #6b7280;
+}
+
+.badge-red {
+  background: var(--red-light);
+  color: var(--red);
+}

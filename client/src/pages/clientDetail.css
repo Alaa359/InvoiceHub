@@ -1,0 +1,147 @@
+/* ============================================
+   Styles de la page Détail client
+   ============================================ */
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 20px;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: var(--accent);
+}
+
+.client-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.client-detail-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--accent-light);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.client-detail-info {
+  flex: 1;
+  min-width: 200px;
+}
+
+.client-detail-info h2 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.client-detail-info p {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.client-detail-email {
+  margin-top: 4px;
+}
+
+.client-detail-stats {
+  display: flex;
+  gap: 28px;
+}
+
+.stat-mini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-mini-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-mini-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* ============ Tableau ============ */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background: var(--gray-light);
+}
+
+.cell-number {
+  font-weight: 600;
+}
+
+.cell-amount {
+  font-weight: 600;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+/* ============ Responsive ============ */
+
+@media (max-width: 768px) {
+  .client-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .client-detail-stats {
+    width: 100%;
+    justify-content: space-around;
+  }
+}
