@@ -1,0 +1,76 @@
+// Prisma schema pour InvoiceHub
+// Base de données PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ MODÈLES ============
+
+// Utilisateur de la plateforme (freelance / entreprise)
+model User {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  password    String
+  companyName String
+  createdAt   DateTime  @default(now())
+  clients     Client[]
+  invoices    Invoice[]
+}
+
+// Client géré par un utilisateur
+model Client {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  email     String
+  address   String?
+  company   String?
+  createdAt DateTime  @default(now())
+  invoices  Invoice[]
+}
+
+// Statuts possibles d'une facture
+enum InvoiceStatus {
+  draft
+  sent
+  paid
+  overdue
+  cancelled
+}
+
+// Facture
+model Invoice {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId    String
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  number      String
+  status      InvoiceStatus @default(draft)
+  dueDate     DateTime?
+  subtotal    Float         @default(0)
+  taxRate     Float         @default(0)
+  total       Float         @default(0)
+  createdAt   DateTime      @default(now())
+  paidAt      DateTime?
+  items       InvoiceItem[]
+
+  @@unique([userId, number])
+}
+
+// Ligne d'article d'une facture
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Int     @default(1)
+  unitPrice   Float   @default(0)
+}

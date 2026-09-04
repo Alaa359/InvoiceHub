@@ -1,1 +1,10 @@
-﻿// server\routes\payments.js - implémenté à une étape ultérieure
+﻿// ============================================
+// Routes paiements Stripe
+// Implémentées à l'Étape 6
+// ============================================
+
+import { Router } from 'express';
+
+const router = Router();
+
+export default router;
