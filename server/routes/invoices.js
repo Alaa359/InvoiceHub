@@ -93,6 +93,92 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ============ STATISTIQUES DU DASHBOARD ============
+
+/**
+ * GET /api/invoices/stats
+ * Retourne les statistiques pour le dashboard :
+ *  - revenus totaux (payés)
+ *  - compteurs par statut
+ *  - évolution des revenus sur 12 mois
+ */
+router.get('/stats', async (req, res) => {
+  try {
+    const invoices = await prisma.invoice.findMany({
+      where: { userId: req.user.id },
+      select: { status: true, total: true, paidAt: true, createdAt: true, dueDate: true },
+    });
+
+    // Revenus totaux (factures marquées payées)
+    const totalPaid = invoices
+      .filter((inv) => inv.status === 'paid')
+      .reduce((sum, inv) => sum + (inv.total || 0), 0);
+
+    // Compteurs par statut
+    const count = { draft: 0, sent: 0, paid: 0, overdue: 0, cancelled: 0 };
+    invoices.forEach((inv) => {
+      if (count[inv.status] !== undefined) count[inv.status]++;
+    });
+
+    // En attente = envoyées non payées
+    const pending = invoices
+      .filter((inv) => inv.status === 'sent' || inv.status === 'overdue')
+      .reduce((sum, inv) => sum + (inv.total || 0), 0);
+
+    // En retard = factures "overdue" + envoyées dont l'échéance est dépassée
+    const now = new Date();
+    const overdueAmount = invoices
+      .filter(
+        (inv) =>
+          inv.status === 'overdue' ||
+          (inv.status === 'sent' && inv.dueDate && new Date(inv.dueDate) < now)
+      )
+      .reduce((sum, inv) => sum + (inv.total || 0), 0);
+
+    // Évolution des revenus sur les 12 derniers mois
+    const monthly = {}; // { "YYYY-MM": total }
+    const today = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      monthly[key] = 0;
+    }
+
+    invoices
+      .filter((inv) => inv.status === 'paid' && inv.paidAt)
+      .forEach((inv) => {
+        const d = new Date(inv.paidAt);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        if (monthly[key] !== undefined) {
+          monthly[key] += inv.total || 0;
+        }
+      });
+
+    // Formate pour recharts
+    const monthlyNames = [
+      'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin',
+      'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc',
+    ];
+    const revenueData = Object.entries(monthly).map(([key, value]) => ({
+      month: monthlyNames[Number(key.split('-')[1]) - 1],
+      total: Math.round(value * 100) / 100,
+    }));
+
+    res.json({
+      totalPaid,
+      pending,
+      overdue: overdueAmount,
+      paidCount: count.paid,
+      sentCount: count.sent,
+      draftCount: count.draft,
+      revenueData,
+    });
+  } catch (error) {
+    console.error('Erreur stats:', error);
+    res.status(500).json({ error: 'Erreur lors du calcul des statistiques' });
+  }
+});
+
 // ============ DÉTAIL D'UNE FACTURE ============
 
 /**

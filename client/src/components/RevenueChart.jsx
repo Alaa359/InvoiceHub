@@ -1,11 +1,14 @@
 ﻿// ============================================
-// RevenueChart - Graphique d'évolution des revenus
-// Implémentation complète à l'Étape 7
+// RevenueChart - Graphique de revenus (recharts area chart)
+// Courbe lissée sur les 12 derniers mois avec zone remplie
 // ============================================
+
+import { AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { formatCurrency } from '../utils/format';
 
 export default function RevenueChart({ data, loading }) {
   if (loading) {
-    return <div className="card skeleton-card" style={{ height: 260 }} />;
+    return <div className="card skeleton-card" style={{ height: 280 }} />;
   }
 
   if (!data || data.length === 0) {
@@ -16,22 +19,16 @@ export default function RevenueChart({ data, loading }) {
     );
   }
 
-  // Placeholder: le vrai graphique recharts sera ajouté à l'étape 7
   return (
-    <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 220, paddingTop: 8 }}>
-      {data.map((d) => (
-        <div
-          key={d.month}
-          title={`${d.month}: ${d.total}`}
-          style={{
-            flex: 1,
-            background: 'var(--accent)',
-            height: `${Math.max(4, (d.total / (Math.max(...data.map((x) => x.total || 0), 1))) * 180)}px`,
-            borderRadius: '4px 4px 0 0',
-            opacity: 0.5,
-          }}
-        />
-      ))}
-    </div>
+    <ResponsiveContainer width="100%" height={280}>
+      <AreaChart data={data} margin={{ top: 10, right: 10, bottom: 24, left: 10 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+        <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: '#6E7485', fontSize: 12 }} />
+        <YAxis tickLine={false} axisLine={false} tick={{ fill: '#6E7485', fontSize: 12 }} />
+        <Tooltip formatter={(value) => formatCurrency(value)} />
+        {/* Zone sous la courbe : indigo très léger (remplissage doux) */}
+        <Area dataKey="total" type="monotone" stroke="#4F46E5" strokeWidth={2.5} fill="rgba(79, 70, 229, 0.08)" activeDot={{ r: 5, fill: '#4F46E5' }} />
+      </AreaChart>
+    </ResponsiveContainer>
   );
 }

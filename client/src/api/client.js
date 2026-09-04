@@ -88,6 +88,7 @@ export const invoicesApi = {
   updateStatus: (id, status) => api.patch(`/invoices/${id}/status`, { status }),
   send: (id) => api.post(`/invoices/${id}/send`),
   remove: (id) => api.delete(`/invoices/${id}`),
+  stats: () => api.get('/invoices/stats'),
   // Téléchargement du PDF (binaire)
   downloadPdf: async (id) => {
     const token = getToken();

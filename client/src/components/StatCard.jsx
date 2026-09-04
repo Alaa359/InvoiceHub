@@ -47,8 +47,11 @@ const iconPath = {
   ),
 };
 
-export default function StatCard({ label, value, color = 'accent', icon = 'cash', variation = null }) {
+export default function StatCard({ label, value, color = 'accent', icon = 'cash', variation = null, format = 'currency' }) {
   const cfg = colorMap[color] || colorMap.accent;
+
+  // Formate la valeur : montant en devise ou simple nombre
+  const displayValue = format === 'number' ? String(value ?? 0) : formatCurrency(value ?? 0);
 
   return (
     <div className="card stat-card">
@@ -57,7 +60,7 @@ export default function StatCard({ label, value, color = 'accent', icon = 'cash'
       </div>
       <span className="stat-card-label">{label}</span>
       <span className="stat-card-value" style={{ color: cfg.color }}>
-        {formatCurrency(value ?? 0)}
+        {displayValue}
       </span>
       {variation != null && (
         <span className={variation >= 0 ? 'stat-variation positive' : 'stat-variation negative'}>
