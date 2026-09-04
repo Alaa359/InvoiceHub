@@ -74,9 +74,17 @@ export const clientsApi = {
 };
 
 export const invoicesApi = {
-  list: () => api.get('/invoices'),
+  list: (params = {}) => {
+    const qs = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => {
+      if (v) qs.append(k, v);
+    });
+    const query = qs.toString();
+    return api.get(`/invoices${query ? `?${query}` : ''}`);
+  },
   get: (id) => api.get(`/invoices/${id}`),
   create: (data) => api.post('/invoices', data),
   update: (id, data) => api.put(`/invoices/${id}`, data),
+  updateStatus: (id, status) => api.patch(`/invoices/${id}/status`, { status }),
   remove: (id) => api.delete(`/invoices/${id}`),
 };
