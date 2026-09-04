@@ -5,7 +5,7 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import { authenticate } from '../middleware/auth.js';
-import { prisma } from '../index.js';
+import prisma from '../prisma.js';
 import { generateInvoicePDF } from '../services/pdfGenerator.js';
 import { sendInvoiceEmail } from '../services/emailSender.js';
 

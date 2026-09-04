@@ -4,7 +4,7 @@
 // ============================================
 
 import jwt from 'jsonwebtoken';
-import { prisma } from '../index.js';
+import prisma from '../prisma.js';
 
 /**
  * Middleware qui vérifie le token JWT de l'utilisateur.

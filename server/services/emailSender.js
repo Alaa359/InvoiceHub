@@ -92,3 +92,61 @@ export async function sendInvoiceEmail(invoice, company = {}) {
   const info = await transporter.sendMail(mailOptions);
   return info;
 }
+
+/**
+ * Envoie une relance de paiement pour une facture en retard.
+ *
+ * @param {Object} invoice - Facture avec client et items chargés
+ * @param {Object} company - { companyName }
+ * @returns {Promise<Object>} info du transport Nodemailer
+ */
+export async function sendReminderEmail(invoice, company = {}) {
+  const transporter = createTransporter();
+  if (!transporter) {
+    const error = new Error('SMTP non configuré (variables SMTP_HOST manquantes)');
+    error.code = 'SMTP_NOT_CONFIGURED';
+    throw error;
+  }
+
+  const client = invoice.client || {};
+  const companyName = company.companyName || 'Votre entreprise';
+
+  // Génère le PDF à joindre (facultatif pour la relance)
+  const pdfBuffer = await generateInvoicePDF(invoice, company);
+
+  const mailOptions = {
+    from: `"${companyName}" <${process.env.SMTP_USER}>`,
+    to: client.email,
+    subject: `Relance : Facture ${invoice.number} en attente de paiement`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #F59E0B;">Relance de paiement</h2>
+        <p>Bonjour ${client.name},</p>
+        <p>Nous vous rappelons que la facture <strong>${invoice.number}</strong>
+        de <strong>${companyName}</strong> est arrivée à échéance et reste en attente de paiement.</p>
+
+        ${invoice.dueDate ? `
+        <p><strong>Montant dû :</strong> ${formatCurrency(invoice.total)}</p>
+        <p><strong>Date d'échéance :</strong> ${formatDate(invoice.dueDate)}</p>` : ''}
+
+        <p>Vous trouverez la facture en pièce jointe. Merci de procéder au paiement
+        dans les plus brefs délais.</p>
+
+        <p>Si le paiement a déjà été effectué, merci d'ignorer ce message.</p>
+        <p style="color: #6E7485; font-size: 12px;">
+          ${companyName} · Facturation via InvoiceHub
+        </p>
+      </div>
+    `,
+    attachments: [
+      {
+        filename: `facture-${invoice.number}.pdf`,
+        content: pdfBuffer,
+        contentType: 'application/pdf',
+      },
+    ],
+  };
+
+  const info = await transporter.sendMail(mailOptions);
+  return info;
+}

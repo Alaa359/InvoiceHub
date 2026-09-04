@@ -6,7 +6,7 @@
 
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
-import { prisma } from '../index.js';
+import prisma from '../prisma.js';
 import { createInvoiceCheckoutSession, getStripe } from '../services/stripe.js';
 
 const router = Router();

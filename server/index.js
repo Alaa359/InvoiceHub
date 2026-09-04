@@ -6,19 +6,20 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
+
+import prisma from './prisma.js';
 
 // Charge les variables d'environnement depuis server/.env
 dotenv.config();
-
-// Instance Prisma partagée dans toute l'application
-export const prisma = new PrismaClient();
 
 // Import des routes
 import authRoutes from './routes/auth.js';
 import clientRoutes from './routes/clients.js';
 import invoiceRoutes from './routes/invoices.js';
 import paymentRoutes from './routes/payments.js';
+
+// Import du cron de relances automatiques
+import { processOverdueInvoices, startReminderCron } from './services/reminderCron.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -76,4 +77,12 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`✅ InvoiceHub server écoute sur le port ${PORT}`);
+
+  // Démarre les relances automatiques (cron)
+  startReminderCron();
+
+  // Passe les factures expirées en "overdue" au démarrage
+  processOverdueInvoices().catch((err) =>
+    console.error('[Relances] Erreur au démarrage:', err.message)
+  );
 });
