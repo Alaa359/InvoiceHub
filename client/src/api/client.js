@@ -86,6 +86,7 @@ export const invoicesApi = {
   create: (data) => api.post('/invoices', data),
   update: (id, data) => api.put(`/invoices/${id}`, data),
   updateStatus: (id, status) => api.patch(`/invoices/${id}/status`, { status }),
+  send: (id) => api.post(`/invoices/${id}/send`),
   remove: (id) => api.delete(`/invoices/${id}`),
   // Téléchargement du PDF (binaire)
   downloadPdf: async (id) => {

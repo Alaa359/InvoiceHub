@@ -78,6 +78,20 @@ export default function InvoiceDetail() {
     }
   };
 
+  // Envoie la facture par email au client
+  const handleSend = async () => {
+    setUpdating(true);
+    try {
+      const res = await invoicesApi.send(id);
+      setInvoice(res.invoice);
+      toast.success(`Facture envoyée à ${res.invoice.client?.name || 'la cliente'}`);
+    } catch (err) {
+      toast.error(err.message || "Erreur lors de l'envoi");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   if (loading) return <div className="card skeleton-card" style={{ height: 200 }} />;
   if (!invoice) return <div className="empty-state card"><p>Facture introuvable.</p></div>;
 
@@ -102,8 +116,12 @@ export default function InvoiceDetail() {
             </svg>
             Télécharger PDF
           </button>
-          <button className="btn btn-secondary btn-sm" onClick={() => handleStatusChange('sent')} disabled={updating || invoice.status === 'paid'}>
-            Marquer envoyée
+          <button className="btn btn-primary btn-sm" onClick={handleSend} disabled={updating || invoice.status === 'paid'}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M22 2 11 13" />
+              <path d="M22 2 15 22l-4-9-9-4z" />
+            </svg>
+            Envoyer au client
           </button>
           <button className="btn btn-success btn-sm" onClick={() => handleStatusChange('paid')} disabled={updating || invoice.status === 'paid'}>
             Marquer payée

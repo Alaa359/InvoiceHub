@@ -79,24 +79,19 @@ export default function InvoiceEditor() {
 
   // ============ Sauvegarde ============
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSaveDraft = () => {
     if (!form.clientId) {
       toast.error('Veuillez sélectionner un client');
       return;
     }
-
-    // Vérifie qu'au moins une ligne a une description
     const validItems = items.filter((item) => item.description.trim() !== '');
     if (validItems.length === 0) {
       toast.error('Ajoutez au moins une ligne avec une description');
       return;
     }
-
     setSaving(true);
-    try {
-      const invoice = await invoicesApi.create({
+    invoicesApi
+      .create({
         clientId: form.clientId,
         dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : null,
         taxRate: taxRate,
@@ -105,54 +100,60 @@ export default function InvoiceEditor() {
           quantity: Number(item.quantity) || 1,
           unitPrice: Number(item.unitPrice) || 0,
         })),
+      })
+      .then(() => {
+        toast.success('Brouillon enregistré');
+        setSaving(false);
+        navigate('/invoices');
+      })
+      .catch((err) => {
+        toast.error(err.message || 'Erreur');
+        setSaving(false);
       });
-      toast.success(`Facture ${invoice.number} créée`);
+  };
+
+  // Valide et renvoie le payload de création
+  const buildCreatePayload = () => {
+    if (!form.clientId) {
+      toast.error('Veuillez sélectionner un client');
+      return null;
+    }
+    const validItems = items.filter((item) => item.description.trim() !== '');
+    if (validItems.length === 0) {
+      toast.error('Ajoutez au moins une ligne avec une description');
+      return null;
+    }
+    return {
+      clientId: form.clientId,
+      dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : null,
+      taxRate: taxRate,
+      items: validItems.map((item) => ({
+        description: item.description,
+        quantity: Number(item.quantity) || 1,
+        unitPrice: Number(item.unitPrice) || 0,
+      })),
+    };
+  };
+
+  // Crée la facture puis l'envoie au client
+  const handleSend = async () => {
+    const payload = buildCreatePayload();
+    if (!payload) return;
+    setSaving(true);
+    try {
+      const invoice = await invoicesApi.create(payload);
+      await invoicesApi.send(invoice.id);
+      toast.success(`Facture ${invoice.number} envoyée au client`);
       setSaving(false);
       navigate(`/invoices/${invoice.id}`);
     } catch (err) {
-      toast.error(err.message || 'Erreur lors de la création de la facture');
-      setSaving(false);
-    }
-  };
-
-  const handleSaveDraft = async () => {
-    // Le backend crée par défaut en "draft"
-    await handleSubmitDraftOnly();
-  };
-
-  const handleSubmitDraftOnly = async () => {
-    if (!form.clientId) {
-      toast.error('Veuillez sélectionner un client');
-      return;
-    }
-    const validItems = items.filter((item) => item.description.trim() !== '');
-    if (validItems.length === 0) {
-      toast.error('Ajoutez au moins une ligne avec une description');
-      return;
-    }
-    setSaving(true);
-    try {
-      await invoicesApi.create({
-        clientId: form.clientId,
-        dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : null,
-        taxRate: taxRate,
-        items: validItems.map((item) => ({
-          description: item.description,
-          quantity: Number(item.quantity) || 1,
-          unitPrice: Number(item.unitPrice) || 0,
-        })),
-      });
-      toast.success('Brouillon enregistré');
-      setSaving(false);
-      navigate('/invoices');
-    } catch (err) {
-      toast.error(err.message || 'Erreur');
+      toast.error(err.message || 'Erreur lors de la création/envoi');
       setSaving(false);
     }
   };
 
   return (
-    <form className="invoice-editor" onSubmit={handleSubmit}>
+    <div className="invoice-editor">
       {/* ===== Colonne gauche : formulaire ===== */}
       <div className="editor-left">
         <div className="card editor-form">
@@ -252,8 +253,8 @@ export default function InvoiceEditor() {
           <button type="button" className="btn btn-secondary" onClick={handleSaveDraft} disabled={saving}>
             Enregistrer brouillon
           </button>
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? 'Création...' : 'Créer la facture'}
+          <button type="button" className="btn btn-primary" onClick={handleSend} disabled={saving}>
+            {saving ? 'Envoi en cours...' : 'Envoyer au client'}
           </button>
         </div>
       </div>
@@ -315,6 +316,6 @@ export default function InvoiceEditor() {
           </div>
         </div>
       </div>
-    </form>
+    </div>
   );
 }

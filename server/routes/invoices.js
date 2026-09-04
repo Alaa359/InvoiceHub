@@ -7,6 +7,7 @@ import { body, validationResult } from 'express-validator';
 import { authenticate } from '../middleware/auth.js';
 import { prisma } from '../index.js';
 import { generateInvoicePDF } from '../services/pdfGenerator.js';
+import { sendInvoiceEmail } from '../services/emailSender.js';
 
 const router = Router();
 
@@ -388,6 +389,58 @@ router.get('/:id/pdf', async (req, res) => {
   } catch (error) {
     console.error('Erreur génération PDF:', error);
     res.status(500).json({ error: 'Erreur lors de la génération du PDF' });
+  }
+});
+
+// ============ ENVOI PAR EMAIL ============
+
+/**
+ * POST /api/invoices/:id/send
+ * Envoie la facture par email au client et passe le statut en "sent".
+ */
+router.post('/:id/send', async (req, res) => {
+  try {
+    const invoice = await prisma.invoice.findFirst({
+      where: { id: req.params.id, userId: req.user.id },
+      include: {
+        client: true,
+        items: true,
+      },
+    });
+
+    if (!invoice) {
+      return res.status(404).json({ error: 'Facture introuvable' });
+    }
+
+    if (!invoice.client?.email) {
+      return res.status(400).json({ error: 'Ce client n\'a pas d\'adresse email' });
+    }
+
+    const company = { companyName: req.user.companyName };
+
+    try {
+      await sendInvoiceEmail(invoice, company);
+    } catch (emailError) {
+      console.error('Erreur envoi email:', emailError.message);
+      return res.status(502).json({
+        error:
+          emailError.code === 'SMTP_NOT_CONFIGURED'
+            ? 'Serveur SMTP non configuré. Ajoutez les variables SMTP_* dans le fichier .env.'
+            : 'Erreur lors de l\'envoi de l\'email',
+      });
+    }
+
+    // Passe le statut en "sent" (si ce n'est pas déjà payé)
+    const updated = await prisma.invoice.update({
+      where: { id: invoice.id },
+      data: { status: invoice.status === 'paid' ? 'paid' : 'sent' },
+      include: { items: true, client: true },
+    });
+
+    res.json({ message: 'Facture envoyée', invoice: updated });
+  } catch (error) {
+    console.error('Erreur envoi facture:', error);
+    res.status(500).json({ error: 'Erreur lors de l\'envoi de la facture' });
   }
 });
 
