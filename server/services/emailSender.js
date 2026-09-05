@@ -4,9 +4,13 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import dns from 'node:dns';
 import nodemailer from 'nodemailer';
 import { generateInvoicePDF } from './pdfGenerator.js';
 import { formatCurrency, formatDate } from '../utils/formatters.js';
+
+// Préfère l'IPv4 lors de la résolution DNS (le v6 cause des timeouts sur certains réseaux)
+dns.setDefaultResultOrder('ipv4first');
 
 // La clé placeholder du .env.example n'est pas une configuration réelle
 const PLACEHOLDER_SMTP_HOST = 'smtp.example.com';
@@ -35,8 +39,9 @@ function createTransporter() {
 
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT) || 587,
+    port: Number(process.env.SMTP_PORT) || 2525,
     secure: Number(process.env.SMTP_PORT) === 465,
+    connectionTimeout: 15000,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
