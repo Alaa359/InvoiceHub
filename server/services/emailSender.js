@@ -6,13 +6,24 @@ import nodemailer from 'nodemailer';
 import { generateInvoicePDF } from './pdfGenerator.js';
 import { formatCurrency, formatDate } from '../utils/formatters.js';
 
+// La clé placeholder du .env.example n'est pas une configuration réelle
+const PLACEHOLDER_SMTP_HOST = 'smtp.example.com';
+
+/**
+ * Indique si le SMTP est réellement configuré (hôte présent ET non placeholder).
+ * @returns {boolean}
+ */
+export function isEmailConfigured() {
+  const host = process.env.SMTP_HOST;
+  return !!host && host !== PLACEHOLDER_SMTP_HOST;
+}
+
 /**
  * Crée le transporteur Nodemailer à partir des variables d'environnement.
  * Retourne null si SMTP n'est pas configuré.
  */
 function createTransporter() {
-  const host = process.env.SMTP_HOST;
-  if (!host) {
+  if (!isEmailConfigured()) {
     console.warn('SMTP_HOST non configuré : l\'envoi d\'emails est désactivé.');
     return null;
   }

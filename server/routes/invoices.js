@@ -7,7 +7,7 @@ import { body, validationResult } from 'express-validator';
 import { authenticate } from '../middleware/auth.js';
 import prisma from '../prisma.js';
 import { generateInvoicePDF } from '../services/pdfGenerator.js';
-import { sendInvoiceEmail } from '../services/emailSender.js';
+import { sendInvoiceEmail, isEmailConfigured } from '../services/emailSender.js';
 
 const router = Router();
 
@@ -500,6 +500,13 @@ router.post('/:id/send', async (req, res) => {
 
     if (!invoice.client?.email) {
       return res.status(400).json({ error: 'Ce client n\'a pas d\'adresse email' });
+    }
+
+    // Pré-vérifie la configuration SMTP pour éviter un appel inutile
+    if (!isEmailConfigured()) {
+      return res.status(409).json({
+        error: 'Envoi d\'emails non configuré. Renseignez les variables SMTP_* dans server/.env pour envoyer des factures par email.',
+      });
     }
 
     const company = { companyName: req.user.companyName };

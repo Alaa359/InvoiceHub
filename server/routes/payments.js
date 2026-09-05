@@ -7,7 +7,7 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
 import prisma from '../prisma.js';
-import { createInvoiceCheckoutSession, getStripe } from '../services/stripe.js';
+import { createInvoiceCheckoutSession, getStripe, isStripeConfigured } from '../services/stripe.js';
 
 const router = Router();
 
@@ -38,6 +38,13 @@ router.post('/create-checkout', authenticate, async (req, res) => {
     // Ne permet pas de payer une facture déjà payée/annulée
     if (invoice.status === 'paid' || invoice.status === 'cancelled') {
       return res.status(400).json({ error: 'Cette facture ne peut pas être payée' });
+    }
+
+    // Pré-vérifie la configuration Stripe pour éviter un appel API inutile
+    if (!isStripeConfigured()) {
+      return res.status(409).json({
+        error: 'Paiement en ligne non configuré. Renseignez une clé Stripe réelle (STRIPE_SECRET_KEY) dans server/.env.',
+      });
     }
 
     try {

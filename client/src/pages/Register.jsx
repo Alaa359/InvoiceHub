@@ -59,6 +59,7 @@ export default function Register() {
               value={form.companyName}
               onChange={handleChange}
               placeholder="Votre entreprise / activité"
+              autoComplete="organization"
               required
             />
           </div>
@@ -72,6 +73,7 @@ export default function Register() {
               value={form.email}
               onChange={handleChange}
               placeholder="vous@entreprise.com"
+              autoComplete="email"
               required
             />
           </div>
@@ -85,6 +87,7 @@ export default function Register() {
               value={form.password}
               onChange={handleChange}
               placeholder="6 caractères minimum"
+              autoComplete="new-password"
               required
             />
           </div>

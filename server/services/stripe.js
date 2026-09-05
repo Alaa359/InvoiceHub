@@ -8,12 +8,24 @@ import Stripe from 'stripe';
 // Elle n'est JAMAIS exposée côté client.
 let stripeInstance = null;
 
+// La clé placeholder du .env.example n'est pas une configuration réelle
+const PLACEHOLDER_STRIPE_KEY = 'sk_test_remplacez_moi';
+
+/**
+ * Indique si Stripe est réellement configuré (clé présente ET non placeholder).
+ * @returns {boolean}
+ */
+export function isStripeConfigured() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  return !!key && key !== PLACEHOLDER_STRIPE_KEY;
+}
+
 /**
  * Retourne l'instance Stripe configurée.
  * Le paiement s'appuie sur Stripe Checkout (mode test).
  */
 export function getStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) {
+  if (!isStripeConfigured()) {
     return null;
   }
   if (!stripeInstance) {
@@ -32,7 +44,7 @@ export function getStripe() {
 export async function createInvoiceCheckoutSession(invoice) {
   const stripe = getStripe();
   if (!stripe) {
-    const error = new Error('Stripe non configuré (STRIPE_SECRET_KEY manquante)');
+    const error = new Error('Stripe non configuré (clef STRIPE_SECRET_KEY invalide ou manquante)');
     error.code = 'STRIPE_NOT_CONFIGURED';
     throw error;
   }
