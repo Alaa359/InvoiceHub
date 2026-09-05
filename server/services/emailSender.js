@@ -2,12 +2,17 @@
 // emailSender.js - Envoi d'emails avec Nodemailer
 // ============================================
 
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import nodemailer from 'nodemailer';
 import { generateInvoicePDF } from './pdfGenerator.js';
 import { formatCurrency, formatDate } from '../utils/formatters.js';
 
 // La clé placeholder du .env.example n'est pas une configuration réelle
 const PLACEHOLDER_SMTP_HOST = 'smtp.example.com';
+
+// Dossier où sont sauvegardés les emails de démonstration (mode dev)
+const PREVIEW_DIR = path.resolve(process.cwd(), 'preview-emails');
 
 /**
  * Indique si le SMTP est réellement configuré (hôte présent ET non placeholder).
@@ -24,12 +29,12 @@ export function isEmailConfigured() {
  */
 function createTransporter() {
   if (!isEmailConfigured()) {
-    console.warn('SMTP_HOST non configuré : l\'envoi d\'emails est désactivé.');
+    console.warn('SMTP_HOST non configuré : envoi réel désactivé, mode démo activé.');
     return null;
   }
 
   return nodemailer.createTransport({
-    host,
+    host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT) || 587,
     secure: Number(process.env.SMTP_PORT) === 465,
     auth: {
@@ -37,6 +42,55 @@ function createTransporter() {
       pass: process.env.SMTP_PASS,
     },
   });
+}
+
+// Adresse d'expéditeur par défaut utilisée en mode démo
+const DEMO_FROM = '"InvoiceHub" <noreply@invoicehub.local>';
+
+/**
+ * Adresse "from" adaptée : l'adresse SMTP si configurée, sinon l'adresse démo.
+ */
+function fromAddress(companyName) {
+  return `"${companyName}" <${process.env.SMTP_USER || 'noreply@invoicehub.local'}>`;
+}
+
+/**
+ * Sauvegarde un email de démonstration dans le dossier preview-emails/.
+ * @param {Object} mailOptions - options Nodemailer
+ * @returns {string} chemin du fichier enregistré
+ */
+async function savePreviewEmail(mailOptions) {
+  const transporter = nodemailer.createTransport({
+    streamTransport: true,
+    buffer: true,
+    newline: 'unix',
+  });
+  const info = await transporter.sendMail(mailOptions);
+  const buffer = info.message; // Buffer du message .eml complet (avec pièces jointes encodées)
+  await fs.mkdir(PREVIEW_DIR, { recursive: true });
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const safeTo = String(mailOptions.to || 'destinataire').replace(/[^a-z0-9._@-]/gi, '_');
+  const file = path.join(PREVIEW_DIR, `${stamp}-${safeTo}.eml`);
+  await fs.writeFile(file, buffer);
+  return file;
+}
+
+/**
+ * Envoie un email. En mode réel via SMTP, en mode démo en le sauvegardant
+ * dans server/preview-emails/ puis en renvoyant { preview: true }.
+ *
+ * @param {Object} mailOptions - options Nodemailer
+ * @returns {Promise<{preview: boolean, path?: string}>}
+ */
+async function deliverMail(mailOptions) {
+  const transporter = createTransporter();
+  if (!transporter) {
+    const file = await savePreviewEmail(mailOptions);
+    return { preview: true, path: file };
+  }
+
+  const info = await transporter.sendMail(mailOptions);
+  return { preview: false, info };
 }
 
 /**
@@ -47,14 +101,6 @@ function createTransporter() {
  * @returns {Promise<Object>} info du transport Nodemailer
  */
 export async function sendInvoiceEmail(invoice, company = {}) {
-  const transporter = createTransporter();
-  if (!transporter) {
-    // Mode sans SMTP : simule l'envoi pour les tests locaux
-    const error = new Error('SMTP non configuré (variables SMTP_HOST manquantes)');
-    error.code = 'SMTP_NOT_CONFIGURED';
-    throw error;
-  }
-
   const client = invoice.client || {};
   const companyName = company.companyName || 'Votre entreprise';
 
@@ -62,7 +108,7 @@ export async function sendInvoiceEmail(invoice, company = {}) {
   const pdfBuffer = await generateInvoicePDF(invoice, company);
 
   const mailOptions = {
-    from: `"${companyName}" <${process.env.SMTP_USER}>`,
+    from: fromAddress(companyName),
     to: client.email,
     subject: `Facture ${invoice.number} de ${companyName}`,
     html: `
@@ -100,8 +146,7 @@ export async function sendInvoiceEmail(invoice, company = {}) {
     ],
   };
 
-  const info = await transporter.sendMail(mailOptions);
-  return info;
+  return deliverMail(mailOptions);
 }
 
 /**
@@ -112,13 +157,6 @@ export async function sendInvoiceEmail(invoice, company = {}) {
  * @returns {Promise<Object>} info du transport Nodemailer
  */
 export async function sendReminderEmail(invoice, company = {}) {
-  const transporter = createTransporter();
-  if (!transporter) {
-    const error = new Error('SMTP non configuré (variables SMTP_HOST manquantes)');
-    error.code = 'SMTP_NOT_CONFIGURED';
-    throw error;
-  }
-
   const client = invoice.client || {};
   const companyName = company.companyName || 'Votre entreprise';
 
@@ -126,7 +164,7 @@ export async function sendReminderEmail(invoice, company = {}) {
   const pdfBuffer = await generateInvoicePDF(invoice, company);
 
   const mailOptions = {
-    from: `"${companyName}" <${process.env.SMTP_USER}>`,
+    from: fromAddress(companyName),
     to: client.email,
     subject: `Relance : Facture ${invoice.number} en attente de paiement`,
     html: `
@@ -158,6 +196,5 @@ export async function sendReminderEmail(invoice, company = {}) {
     ],
   };
 
-  const info = await transporter.sendMail(mailOptions);
-  return info;
+  return deliverMail(mailOptions);
 }

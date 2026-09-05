@@ -142,8 +142,12 @@ export default function InvoiceEditor() {
     setSaving(true);
     try {
       const invoice = await invoicesApi.create(payload);
-      await invoicesApi.send(invoice.id);
-      toast.success(`Facture ${invoice.number} envoyée au client`);
+      const res = await invoicesApi.send(invoice.id);
+      if (res.preview) {
+        toast('Facture créée et marquée "Envoyée" (mode démo — aucun email réel envoyé)', { icon: '✉️' });
+      } else {
+        toast.success(`Facture ${invoice.number} envoyée au client`);
+      }
       setSaving(false);
       navigate(`/invoices/${invoice.id}`);
     } catch (err) {

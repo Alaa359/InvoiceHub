@@ -105,7 +105,11 @@ export default function InvoiceDetail() {
     try {
       const res = await invoicesApi.send(id);
       setInvoice(res.invoice);
-      toast.success(`Facture envoyée à ${res.invoice.client?.name || 'la cliente'}`);
+      if (res.preview) {
+        toast('Facture marquée "Envoyée" (mode démo — aucun email réel envoyé)', { icon: '✉️' });
+      } else {
+        toast.success(`Facture envoyée à ${res.invoice.client?.name || 'la cliente'}`);
+      }
     } catch (err) {
       toast.error(err.message || "Erreur lors de l'envoi");
     } finally {

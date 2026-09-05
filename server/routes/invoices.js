@@ -7,7 +7,7 @@ import { body, validationResult } from 'express-validator';
 import { authenticate } from '../middleware/auth.js';
 import prisma from '../prisma.js';
 import { generateInvoicePDF } from '../services/pdfGenerator.js';
-import { sendInvoiceEmail, isEmailConfigured } from '../services/emailSender.js';
+import { sendInvoiceEmail } from '../services/emailSender.js';
 
 const router = Router();
 
@@ -502,17 +502,13 @@ router.post('/:id/send', async (req, res) => {
       return res.status(400).json({ error: 'Ce client n\'a pas d\'adresse email' });
     }
 
-    // Pré-vérifie la configuration SMTP pour éviter un appel inutile
-    if (!isEmailConfigured()) {
-      return res.status(409).json({
-        error: 'Envoi d\'emails non configuré. Renseignez les variables SMTP_* dans server/.env pour envoyer des factures par email.',
-      });
-    }
-
     const company = { companyName: req.user.companyName };
 
+    let result;
     try {
-      await sendInvoiceEmail(invoice, company);
+      // En mode réel : envoie via SMTP. Sans SMTP configuré : génère un email
+      // de démonstration dans server/preview-emails/ (l'envoi reste un succès).
+      result = await sendInvoiceEmail(invoice, company);
     } catch (emailError) {
       console.error('Erreur envoi email:', emailError.message);
       return res.status(502).json({
@@ -530,7 +526,12 @@ router.post('/:id/send', async (req, res) => {
       include: { items: true, client: true },
     });
 
-    res.json({ message: 'Facture envoyée', invoice: updated });
+    res.json({
+      message: result.preview ? 'Facture envoyée (mode démonstration)' : 'Facture envoyée',
+      invoice: updated,
+      preview: result.preview || false,
+      previewPath: result.path || undefined,
+    });
   } catch (error) {
     console.error('Erreur envoi facture:', error);
     res.status(500).json({ error: 'Erreur lors de l\'envoi de la facture' });

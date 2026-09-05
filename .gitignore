@@ -34,3 +34,6 @@ yarn-error.log*
 # Misc
 coverage/
 .cache/
+
+# Emails de démonstration (générés quand SMTP n'est pas configuré)
+preview-emails/
