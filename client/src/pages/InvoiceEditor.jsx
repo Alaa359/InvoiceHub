@@ -143,7 +143,9 @@ export default function InvoiceEditor() {
     try {
       const invoice = await invoicesApi.create(payload);
       const res = await invoicesApi.send(invoice.id);
-      if (res.preview) {
+      if (res.preview && res.degraded) {
+        toast('Envoi réel impossible (vérifiez les identifiants SMTP). Email généré en mode démo.', { icon: '✉️' });
+      } else if (res.preview) {
         toast('Facture créée et marquée "Envoyée" (mode démo — aucun email réel envoyé)', { icon: '✉️' });
       } else {
         toast.success(`Facture ${invoice.number} envoyée au client`);

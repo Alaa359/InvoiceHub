@@ -105,7 +105,9 @@ export default function InvoiceDetail() {
     try {
       const res = await invoicesApi.send(id);
       setInvoice(res.invoice);
-      if (res.preview) {
+      if (res.preview && res.degraded) {
+        toast('Envoi réel impossible (vérifiez les identifiants SMTP). Email généré en mode démo.', { icon: '✉️' });
+      } else if (res.preview) {
         toast('Facture marquée "Envoyée" (mode démo — aucun email réel envoyé)', { icon: '✉️' });
       } else {
         toast.success(`Facture envoyée à ${res.invoice.client?.name || 'la cliente'}`);

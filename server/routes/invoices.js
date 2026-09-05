@@ -531,6 +531,8 @@ router.post('/:id/send', async (req, res) => {
       invoice: updated,
       preview: result.preview || false,
       previewPath: result.path || undefined,
+      degraded: result.degraded || false,
+      cause: result.cause || undefined,
     });
   } catch (error) {
     console.error('Erreur envoi facture:', error);

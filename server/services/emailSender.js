@@ -76,8 +76,11 @@ async function savePreviewEmail(mailOptions) {
 }
 
 /**
- * Envoie un email. En mode réel via SMTP, en mode démo en le sauvegardant
- * dans server/preview-emails/ puis en renvoyant { preview: true }.
+ * Envoie un email.
+ *  - SMTP réel configuré et fonctionnel → envoi réel.
+ *  - Sinon (SMTP absent OU échec d'envoi réel) → sauvegarde le mail dans
+ *    server/preview-emails/ et renvoie { preview: true } pour que le flux
+ *    de l'application reste utilisable (facture marquée "Envoyée").
  *
  * @param {Object} mailOptions - options Nodemailer
  * @returns {Promise<{preview: boolean, path?: string}>}
@@ -89,8 +92,16 @@ async function deliverMail(mailOptions) {
     return { preview: true, path: file };
   }
 
-  const info = await transporter.sendMail(mailOptions);
-  return { preview: false, info };
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    return { preview: false, info };
+  } catch (error) {
+    // L'envoi réel a échoué (identifiants, réseau…) : on bascule en mode démo
+    // pour ne jamais bloquer le flux de l'application.
+    console.warn('Envoi SMTP réel impossible, repli en mode démo :', error.message);
+    const file = await savePreviewEmail(mailOptions);
+    return { preview: true, path: file, degraded: true, cause: error.message };
+  }
 }
 
 /**
